@@ -20,4 +20,4 @@ RUN useradd admin
 RUN chown -R admin:admin ./
 USER admin
 
-ENTRYPOINT ["sh"]
+ENTRYPOINT ["python3", ${FILE_NAME}]

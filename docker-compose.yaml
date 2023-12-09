@@ -1,0 +1,7 @@
+version: "3"
+
+services:
+  thermosys-example:
+    build: .
+    environment:
+      - FILE_NAME=example.py
