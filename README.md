@@ -1,1 +1,1 @@
-# thermo-sys
+# ThermoSys
