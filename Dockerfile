@@ -1,23 +1,22 @@
 FROM ubuntu:latest
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get -y update && apt-get -y upgrade
-RUN apt-get -y install \
-    python3.11 \
-    python3-pip 
+RUN apt-get update -y && apt-get upgrade -y && \
+    apt-get install -y python3 python3-pip && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/app
 COPY ./requirements.txt ./
 
-RUN pip3 install --upgrade pip setuptools wheel
-RUN pip3 install -r ./requirements.txt
+RUN pip3 install --upgrade pip setuptools wheel && \
+    pip3 install -r ./requirements.txt
 
-COPY ./ ./
+COPY . .
 
-RUN useradd admin
-RUN chown -R admin:admin ./
+RUN useradd admin && \
+    chown -R admin:admin ./
 USER admin
 
-ENTRYPOINT ["python3", ${FILE_NAME}]
+CMD python3 ${FILE_NAME}
