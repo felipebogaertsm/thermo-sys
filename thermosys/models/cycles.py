@@ -2,7 +2,7 @@
 Classes that represent thermodynamic cycles.
 """
 
-from .devices import Device
+from models.devices import Device
 
 
 class BraytonCycle:
@@ -10,6 +10,9 @@ class BraytonCycle:
     Represents a Brayton cycle in a thermodynamic system.
 
     Attributes:
+    ambient_temperature (float): The ambient temperature of the system.
+    ambient_pressure (float): The ambient pressure of the system.
+    mass_flux (float): The mass flux of the system.
     devices (list): A list of devices (e.g., compressors, turbines) in the cycle.
 
     Methods:
@@ -18,10 +21,23 @@ class BraytonCycle:
     solve: Solves for the states of the cycle.
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        ambient_temperature: float,
+        ambient_pressure: float,
+        mass_flux: float,
+    ) -> None:
         """
         Initializes a new instance of the BraytonCycle class with an empty list of devices.
+
+        Parameters:
+        ambient_temperature (float): The ambient temperature of the system (C).
+        ambient_pressure (float): The ambient pressure of the system (Pa).
+        mass_flux (float): The mass flux of the system (kg/s)
         """
+        self.ambient_temperature = ambient_temperature
+        self.ambient_pressure = ambient_pressure
+        self.mass_flux = mass_flux
         self.devices = []
 
     def add_device(self, device: Device) -> None:
