@@ -3,6 +3,9 @@ Classes that represent thermodynamic cycles.
 """
 
 from abc import ABC, abstractmethod
+
+from pyfluids import Fluid
+
 from thermosys.models.devices import Device
 
 
@@ -39,8 +42,7 @@ class BraytonCycle(ThermodynamicCycle):
     Represents a Brayton cycle in a thermodynamic system.
 
     Attributes:
-    ambient_temperature (float): The ambient temperature of the system.
-    ambient_pressure (float): The ambient pressure of the system.
+    initial_state (Fluid): The initial state of the gas in the system.
     mass_flux (float): The mass flux of the system.
     devices (list): A list of devices (e.g., compressors, turbines) in the cycle.
 
@@ -52,20 +54,17 @@ class BraytonCycle(ThermodynamicCycle):
 
     def __init__(
         self,
-        ambient_temperature: float,
-        ambient_pressure: float,
+        initial_state: Fluid,
         mass_flux: float,
     ) -> None:
         """
         Initializes a new instance of the BraytonCycle class with an empty list of devices.
 
         Parameters:
-        ambient_temperature (float): The ambient temperature of the system (C).
-        ambient_pressure (float): The ambient pressure of the system (Pa).
+        initial_state (Fluid): The initial state of the gas in the system.
         mass_flux (float): The mass flux of the system (kg/s)
         """
-        self.ambient_temperature = ambient_temperature
-        self.ambient_pressure = ambient_pressure
+        self.initial_state = initial_state
         self.mass_flux = mass_flux
 
         self.devices = []  # filled in by add_device method
@@ -89,7 +88,14 @@ class BraytonCycle(ThermodynamicCycle):
         in the cycle. The implementation will depend on the specifics of the Brayton cycle
         and the data available from each device.
         """
-        self.states = []  # clear any previous states
+        self.states = [self.initial_state]  # clear any previous states
 
-        for device in self.devices:
-            self.states.append(device.get_outlet_state())
+        for i, device in enumerate(self.devices):
+            if i == 0:
+                inlet_state = self.initial_state
+            else:
+                inlet_state = self.states[i - 1]
+
+            self.states.append(
+                device.get_outlet_state(inlet_state=inlet_state)
+            )

@@ -6,7 +6,7 @@ dataclasses will be used.
 
 from abc import ABC, abstractmethod
 
-from thermosys.models.generic import State
+from pyfluids import Fluid, FluidsList, Input
 
 
 class Device(ABC):
@@ -34,12 +34,15 @@ class Device(ABC):
         self.efficiency = efficiency
 
     @abstractmethod
-    def get_outlet_state(self, *args, **kwargs) -> State:
+    def get_outlet_state(self, inlet_state: Fluid, *args, **kwargs) -> Fluid:
         """
         Returns the state of the gas at the outlet of the device.
 
+        Parameters:
+        inlet_state (Fluid): The state of the gas at the inlet of the device.
+
         Returns:
-        State: The state of the gas at the outlet of the device.
+        Fluid: The state of the gas at the outlet of the device.
         """
 
 
@@ -48,7 +51,6 @@ class GasCompressor(Device):
     Represents a gas compressor in a thermodynamic cycle, inheriting from the Device class.
 
     Attributes:
-    inlet_pressure (float): The inlet pressure of the gas before compression (in Pascals).
     compression_ratio (float): The ratio of the outlet pressure to the inlet pressure.
 
     Methods:
@@ -59,7 +61,6 @@ class GasCompressor(Device):
         self,
         name: str,
         efficiency: float,
-        inlet_pressure: float,
         compression_ratio: float,
     ) -> None:
         """
@@ -68,17 +69,31 @@ class GasCompressor(Device):
         Parameters:
         name (str): The name or identifier of the compressor.
         efficiency (float): The efficiency of the compressor (as a decimal).
-        inlet_pressure (float): The inlet pressure of the gas before compression (in Pascals).
         compression_ratio (float): The ratio of the outlet pressure to the inlet pressure.
         """
         super().__init__(name, efficiency)
-        self.inlet_pressure = inlet_pressure
         self.compression_ratio = compression_ratio
 
+    def get_outlet_state(self, inlet_state: Fluid) -> Fluid:
+        inlet_pressure = inlet_state.pressure
+        inlet_temperature = inlet_state.temperature
 
-class CombustionChamber(Device):
+        outlet_pressure = inlet_pressure * self.compression_ratio
+
+        fluid = Fluid(FluidsList.Air).with_state(
+            Input.pressure(inlet_pressure),
+            Input.temperature(inlet_temperature),
+        )
+
+        return fluid.compression_to_pressure(
+            pressure=outlet_pressure,
+            isentropic_efficiency=self.efficiency * 100,
+        )
+
+
+class GasCombustionChamber(Device):
     """
-    Represents a combustion chamber in a thermodynamic cycle.
+    Represents a gas combustion chamber in a thermodynamic cycle.
 
     Attributes:
     outlet_temperature (float): The temperature of the gas at the outlet of
@@ -89,20 +104,33 @@ class CombustionChamber(Device):
     """
 
     def __init__(
-        self, name: str, efficiency: float, outlet_temperature: float
+        self,
+        name: str,
+        efficiency: float,
+        outlet_temperature: float,
     ) -> None:
         """
-        Initializes a new instance of the CombustionChamber class.
+        Initializes a new instance of the GasCombustionChamber class.
 
         Parameters:
         name (str): The name or identifier of the combustion chamber.
         efficiency (float): The efficiency of the combustion process (as a
             decimal).
         outlet_temperature (float): The temperature of the gas at the outlet
-            of the combustion chamber (in Kelvin).
+            of the combustion chamber (in C).
         """
         super().__init__(name, efficiency)
         self.outlet_temperature = outlet_temperature
+
+    def get_outlet_state(self, inlet_state: Fluid) -> Fluid:
+        pressure = inlet_state.pressure
+
+        fluid = Fluid(FluidsList.Air).with_state(
+            Input.pressure(pressure),
+            Input.temperature(self.outlet_temperature),
+        )
+
+        return fluid
 
 
 class GasTurbine(Device):
@@ -110,7 +138,6 @@ class GasTurbine(Device):
     Represents a gas turbine in a thermodynamic cycle.
 
     Attributes:
-    inlet_pressure (float): The pressure of the gas at the inlet of the turbine (in Pascals).
     outlet_pressure (float): The pressure of the gas at the outlet of the turbine (in Pascals).
 
     Methods:
@@ -121,7 +148,6 @@ class GasTurbine(Device):
         self,
         name: str,
         efficiency: float,
-        inlet_pressure: float,
         outlet_pressure: float,
     ) -> None:
         """
@@ -130,9 +156,21 @@ class GasTurbine(Device):
         Parameters:
         name (str): The name or identifier of the gas turbine.
         efficiency (float): The efficiency of the turbine (as a decimal).
-        inlet_pressure (float): The pressure of the gas at the inlet of the turbine (in Pascals).
         outlet_pressure (float): The pressure of the gas at the outlet of the turbine (in Pascals).
         """
         super().__init__(name, efficiency)
-        self.inlet_pressure = inlet_pressure
         self.outlet_pressure = outlet_pressure
+
+    def get_outlet_state(self, inlet_state: Fluid) -> Fluid:
+        inlet_pressure = inlet_state.pressure
+        inlet_temperature = inlet_state.temperature
+
+        fluid = Fluid(FluidsList.Air).with_state(
+            Input.pressure(inlet_pressure),
+            Input.temperature(inlet_temperature),
+        )
+
+        return fluid.expansion_to_pressure(
+            pressure=self.outlet_pressure,
+            isentropic_efficiency=self.efficiency * 100,
+        )
