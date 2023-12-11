@@ -2,7 +2,6 @@
 Classes that represent thermodynamic cycles.
 """
 
-
 from abc import ABC, abstractmethod
 from thermosys.models.devices import Device
 
@@ -68,7 +67,9 @@ class BraytonCycle(ThermodynamicCycle):
         self.ambient_temperature = ambient_temperature
         self.ambient_pressure = ambient_pressure
         self.mass_flux = mass_flux
-        self.devices = []
+
+        self.devices = []  # filled in by add_device method
+        self.states = []  # filled in by solve method
 
     def add_device(self, device: Device) -> None:
         """
@@ -88,4 +89,7 @@ class BraytonCycle(ThermodynamicCycle):
         in the cycle. The implementation will depend on the specifics of the Brayton cycle
         and the data available from each device.
         """
-        # Implementation of the solve logic goes here
+        self.states = []  # clear any previous states
+
+        for device in self.devices:
+            self.states.append(device.get_outlet_state())

@@ -4,8 +4,12 @@ These classes are generally behavioral, so regular classes instead of
 dataclasses will be used.
 """
 
+from abc import ABC, abstractmethod
 
-class Device:
+from thermosys.models.generic import State
+
+
+class Device(ABC):
     """
     Represents a general device in a thermodynamic cycle.
 
@@ -15,6 +19,7 @@ class Device:
 
     Methods:
     __init__: Initializes a new instance of the Device class.
+    get_outlet_state: Returns the state of the gas at the outlet of the device.
     """
 
     def __init__(self, name: str, efficiency: float) -> None:
@@ -27,6 +32,15 @@ class Device:
         """
         self.name = name
         self.efficiency = efficiency
+
+    @abstractmethod
+    def get_outlet_state(self, *args, **kwargs) -> State:
+        """
+        Returns the state of the gas at the outlet of the device.
+
+        Returns:
+        State: The state of the gas at the outlet of the device.
+        """
 
 
 class GasCompressor(Device):
