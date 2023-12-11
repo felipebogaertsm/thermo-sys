@@ -1,0 +1,6 @@
+[MESSAGES CONTROL]
+disable=
+    C,  # Disable convention messages
+    R,  # Disable refactor messages
+    W,  # Disable warning messages
+    I   # Disable informational messages
