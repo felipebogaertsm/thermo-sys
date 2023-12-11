@@ -1,11 +1,6 @@
-FROM ubuntu:latest
+FROM python:3.11
 
 ENV PYTHONUNBUFFERED=1
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update -y && apt-get upgrade -y && \
-    apt-get install -y python3 python3-pip && \
-    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/app
 COPY ./requirements.txt ./

@@ -3,3 +3,5 @@ services:
     build: .
     environment:
       - FILE_NAME=example.py
+    volumes:
+      - ./:/usr/app/

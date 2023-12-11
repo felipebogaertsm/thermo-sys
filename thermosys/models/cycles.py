@@ -2,7 +2,7 @@
 Classes that represent thermodynamic cycles.
 """
 
-from models.devices import Device
+from thermosys.models.devices import Device
 
 
 class BraytonCycle:
