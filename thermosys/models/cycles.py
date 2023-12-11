@@ -2,10 +2,40 @@
 Classes that represent thermodynamic cycles.
 """
 
+
+from abc import ABC, abstractmethod
 from thermosys.models.devices import Device
 
 
-class BraytonCycle:
+class ThermodynamicCycle(ABC):
+    """
+    Represents a Thermodynamic Cycle. A cycle is composed of a sequence of
+    processes and defined states between them.
+
+    Methods:
+    __init__: Initializes a new instance of the ThermodynamicCycle class.
+    """
+
+    @abstractmethod
+    def add_device(self, device: Device) -> None:
+        """
+        Adds a new device to the cycle.
+
+        Parameters:
+        device (Device): The device to be added to the cycle.
+        """
+
+    @abstractmethod
+    def solve(self) -> None:
+        """
+        Solves for the states of the cycle.
+
+        This method should implement the necessary calculations to determine the thermodynamic
+        states at various points in the cycle.
+        """
+
+
+class BraytonCycle(ThermodynamicCycle):
     """
     Represents a Brayton cycle in a thermodynamic system.
 
@@ -59,4 +89,3 @@ class BraytonCycle:
         and the data available from each device.
         """
         # Implementation of the solve logic goes here
-        pass
