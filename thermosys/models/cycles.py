@@ -74,12 +74,6 @@ class ThermodynamicCycle(ABC):
 
         print(f"Efficiency: {self.get_efficiency() * 100:.2f} %")
 
-
-class BraytonCycle(ThermodynamicCycle):
-    """
-    Represents a Brayton cycle in a thermodynamic system.
-    """
-
     @property
     def turbine_work(self) -> float:
         """
@@ -97,22 +91,6 @@ class BraytonCycle(ThermodynamicCycle):
         return turbine_work
 
     @property
-    def compressor_work(self) -> float:
-        """
-        Returns the work done by the compressor in the cycle.
-
-        Returns:
-        float: The work done by the compressor (J/kg).
-        """
-        compressor_work = np.sum(
-            device.energy_balance
-            for device in self.devices
-            if device.device_type == "compressor"
-        )
-
-        return compressor_work
-
-    @property
     def heat_in(self) -> float:
         """
         Returns the heat added to the cycle.
@@ -127,6 +105,28 @@ class BraytonCycle(ThermodynamicCycle):
         )
 
         return heat_in
+
+
+class BraytonCycle(ThermodynamicCycle):
+    """
+    Represents a Brayton cycle in a thermodynamic system.
+    """
+
+    @property
+    def compressor_work(self) -> float:
+        """
+        Returns the work done by the compressor in the cycle.
+
+        Returns:
+        float: The work done by the compressor (J/kg).
+        """
+        compressor_work = np.sum(
+            device.energy_balance
+            for device in self.devices
+            if device.device_type == "compressor"
+        )
+
+        return compressor_work
 
     def get_efficiency(self) -> float:
         super().get_efficiency()
