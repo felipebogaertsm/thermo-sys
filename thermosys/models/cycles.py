@@ -65,11 +65,7 @@ class ThermodynamicCycle(ABC):
         self.states = [self.initial_state]  # clear any previous states
 
         for i, device in enumerate(self.devices):
-            if i == 0:
-                inlet_state = self.initial_state
-            else:
-                inlet_state = self.states[i - 1]
-
+            inlet_state = self.states[i]
             device.inlet_state = inlet_state
 
             self.states.append(
