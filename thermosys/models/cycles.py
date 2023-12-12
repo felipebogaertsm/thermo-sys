@@ -4,6 +4,7 @@ Classes that represent thermodynamic cycles.
 
 from abc import ABC, abstractmethod
 
+import numpy as np
 from pyfluids import Fluid
 
 from thermosys.models.devices import Device
@@ -75,8 +76,74 @@ class ThermodynamicCycle(ABC):
                 device.get_outlet_state(inlet_state=inlet_state)
             )
 
+    @abstractmethod
+    def get_efficiency(self) -> float:
+        """
+        Returns the efficiency of the cycle. Cycle must have been solved
+        before calling this method.
+
+        Returns:
+        float: The efficiency of the cycle (as a decimal).
+        """
+        if len(self.states) < 2:
+            raise ValueError(
+                "The cycle must be solved before getting its efficiency."
+            )
+
 
 class BraytonCycle(ThermodynamicCycle):
     """
     Represents a Brayton cycle in a thermodynamic system.
     """
+
+    @property
+    def turbine_work(self) -> float:
+        """
+        Returns the work done by the turbine in the cycle.
+
+        Returns:
+        float: The work done by the turbine (J/kg).
+        """
+        turbine_work = np.sum(
+            device.energy_balance
+            for device in self.devices
+            if device.device_type == "turbine"
+        )
+
+        return turbine_work
+
+    @property
+    def compressor_work(self) -> float:
+        """
+        Returns the work done by the compressor in the cycle.
+
+        Returns:
+        float: The work done by the compressor (J/kg).
+        """
+        compressor_work = np.sum(
+            device.energy_balance
+            for device in self.devices
+            if device.device_type == "compressor"
+        )
+
+        return compressor_work
+
+    @property
+    def heat_in(self) -> float:
+        """
+        Returns the heat added to the cycle.
+
+        Returns:
+        float: The heat added to the cycle (J/kg).
+        """
+        heat_in = np.sum(
+            device.energy_balance
+            for device in self.devices
+            if device.device_type == "combustion_chamber"
+        )
+
+        return heat_in
+
+    def get_efficiency(self) -> float:
+        super().get_efficiency()
+        return (self.turbine_work - self.compressor_work) / self.heat_in

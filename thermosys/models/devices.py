@@ -4,8 +4,9 @@ These classes are generally behavioral, so regular classes instead of
 dataclasses will be used.
 """
 
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 
+import numpy as np
 from pyfluids import Fluid, FluidsList, Input
 
 
@@ -22,6 +23,7 @@ class Device(ABC):
 
     Methods:
     __init__: Initializes a new instance of the Device class.
+    device_type: Returns the type of the device.
     get_outlet_state: Returns the state of the gas at the outlet of the device.
     """
 
@@ -37,6 +39,15 @@ class Device(ABC):
         self.inlet_state = None
         self.outlet_state = None
 
+    @abstractproperty
+    def device_type(self) -> str:
+        """
+        Returns the type of the device.
+
+        Returns:
+        str: The type of the device (e.g., "compressor", "turbine", "combustion_chamber").
+        """
+
     @abstractmethod
     def get_outlet_state(self, inlet_state: Fluid, *args, **kwargs) -> Fluid:
         """
@@ -48,6 +59,19 @@ class Device(ABC):
         Returns:
         Fluid: The state of the gas at the outlet of the device.
         """
+
+    @property
+    def energy_balance(self) -> float:
+        """
+        Returns the energy balance of the device.
+
+        Returns:
+        float: The energy balance of the device (J/kg).
+        """
+        if self.inlet_state is None or self.outlet_state is None:
+            raise ValueError("The inlet and outlet states must be defined.")
+
+        return np.abs(self.outlet_state.enthalpy - self.inlet_state.enthalpy)
 
 
 class NonIsentropicDevice(Device):
@@ -101,6 +125,10 @@ class GasCompressor(NonIsentropicDevice):
         super().__init__(name, efficiency)
         self.compression_ratio = compression_ratio
 
+    @property
+    def device_type(self) -> str:
+        return "compressor"
+
     def get_outlet_state(self, inlet_state: Fluid) -> Fluid:
         inlet_pressure = inlet_state.pressure
         inlet_temperature = inlet_state.temperature
@@ -147,6 +175,10 @@ class GasCombustionChamber(Device):
         super().__init__(name)
         self.outlet_temperature = outlet_temperature
 
+    @property
+    def device_type(self) -> str:
+        return "combustion_chamber"
+
     def get_outlet_state(self, inlet_state: Fluid) -> Fluid:
         pressure = inlet_state.pressure
 
@@ -186,6 +218,10 @@ class GasTurbine(NonIsentropicDevice):
         """
         super().__init__(name, efficiency)
         self.outlet_pressure = outlet_pressure
+
+    @property
+    def device_type(self) -> str:
+        return "turbine"
 
     def get_outlet_state(self, inlet_state: Fluid) -> Fluid:
         inlet_pressure = inlet_state.pressure

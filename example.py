@@ -36,7 +36,7 @@ brayton_cycle.add_device(
     GasTurbine(
         name="TCg",
         efficiency=0.8,
-        outlet_pressure=101325 * 3,
+        outlet_pressure=bar_to_pascal(10),
     )
 )
 brayton_cycle.add_device(
@@ -54,3 +54,29 @@ brayton_cycle.add_device(
 )
 
 brayton_cycle.solve()
+
+# Results:
+for i, state in enumerate(brayton_cycle.states):
+    print(
+        f"{i+1} - {state.name}: {state.pressure * 1e-5:.2f} bar, {state.temperature:.2f} C, {state.enthalpy * 1e-3:.2f} kJ/kg"
+    )
+
+print("\n")
+
+for device in brayton_cycle.devices:
+    print(
+        f"{device.name}: {device.energy_balance * 1e-3:.2f} kJ/kg",
+    )
+
+print("\n")
+
+print(f"Turbine work: {brayton_cycle.turbine_work * 1e-3:.2f} kJ/kg")
+print(f"Compressor work: {brayton_cycle.compressor_work * 1e-3:.2f} kJ/kg")
+print(
+    f"Total work: {(brayton_cycle.turbine_work - brayton_cycle.compressor_work) * 1e-3:.2f} kJ/kg"
+)
+print(f"Heat input: {brayton_cycle.heat_in * 1e-3:.2f} kJ/kg")
+
+print("\n")
+
+print(f"Efficiency: {brayton_cycle.get_efficiency() * 100:.2f} %")
