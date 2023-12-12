@@ -21,7 +21,7 @@ def simulate_system(brayton_tc_outlet_pressure: float) -> float:
         Input.temperature(30),
     )
 
-    # Creating Brayton cycle instance:
+    # BRAYTON CYCLE:
     brayton_cycle = BraytonCycle(
         initial_state=gas_initial_state, mass_flux=450
     )
