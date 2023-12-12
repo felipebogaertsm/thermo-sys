@@ -24,6 +24,7 @@ BRAYTON_TURBINE_C_EFFICIENCY = 0.8  # -
 BRAYTON_COMBUSTION_CHAMBER_1_TEMPERATURE = 1000  # C
 BRAYTON_TURBINE_P_EFFICIENCY = 0.85  # -
 BRAYTON_COMBUSTION_CHAMBER_2_TEMPERATURE = 710  # C
+RECOVERY_BOILER_DELTA_TSA = 25  # C
 
 
 def simulate_system(brayton_tc_outlet_pressure: float) -> float:
@@ -86,6 +87,15 @@ def simulate_system(brayton_tc_outlet_pressure: float) -> float:
 
     brayton_cycle.devices = devices
     brayton_cycle.states = states
+
+    # RANKINE CYCLE (incomplete):
+    recovery_boiler = HeatSourceDevice(
+        name="RB",
+        fluid_type=FluidsList.Water,
+        outlet_temperature=state_1g.temperature - RECOVERY_BOILER_DELTA_TSA,
+    )
+
+    state_1v = recovery_boiler.get_outlet_state(state_6g)
 
     return brayton_cycle.get_efficiency()
 
