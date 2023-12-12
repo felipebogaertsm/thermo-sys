@@ -16,29 +16,20 @@ class Device(ABC):
 
     Attributes:
     name (str): The name or identifier of the device.
-    inlet_state (Fluid | None): The state of the gas at the inlet of the
-        device.
-    outlet_state (Fluid | None): The state of the gas at the outlet of the
-        device.
 
     Methods:
     __init__: Initializes a new instance of the Device class.
     device_type: Returns the type of the device.
-    get_outlet_state: Returns the state of the gas at the outlet of the device.
     """
 
-    def __init__(self, name: str, energy_balance: float | None = None) -> None:
+    def __init__(self, name: str) -> None:
         """
         Initializes a new instance of the Device class.
 
         Parameters:
         name (str): The name or identifier of the device.
-
         """
         self.name = name
-
-        self.inlet_state = None
-        self.outlet_state = None
 
     @abstractproperty
     def device_type(self) -> str:
@@ -48,6 +39,33 @@ class Device(ABC):
         Returns:
         str: The type of the device (e.g., "compressor", "turbine", "heat_source").
         """
+
+
+class SingleInletOutletDevice(Device):
+    """
+    Represents a general device in a thermodynamic cycle with a single inlet
+    and single outlet.
+
+    Attributes:
+    inlet_state (Fluid | None): The state of the gas at the inlet of the
+        device.
+    outlet_state (Fluid | None): The state of the gas at the outlet of the
+        device.
+
+    Methods:
+    __init__: Initializes a new instance of the SingleInletOutletDevice class.
+    get_outlet_state: Returns the state of the gas at the outlet of the device.
+    energy_balance: Returns the energy balance of the device.
+    """
+
+    def __init__(self, name: str) -> None:
+        """
+        Initializes a new instance of the SingleInletOutletDevice class.
+        """
+        super().__init__(name)
+
+        self.inlet_state = None
+        self.outlet_state = None
 
     @abstractmethod
     def get_outlet_state(self, inlet_state: Fluid, *args, **kwargs) -> Fluid:
@@ -76,7 +94,7 @@ class Device(ABC):
         return np.abs(self.outlet_state.enthalpy - self.inlet_state.enthalpy)
 
 
-class NonIsentropicDevice(Device):
+class NonIsentropicDevice(SingleInletOutletDevice):
     """
     Represents a general non-isentropic device in a thermodynamic cycle.
 
@@ -148,7 +166,7 @@ class GasCompressor(NonIsentropicDevice):
         return self.outlet_state
 
 
-class HeatSourceDevice(Device):
+class HeatSourceDevice(SingleInletOutletDevice):
     """
     Represents a heat source in a thermodynamic cycle, capable of using different types of fluids.
 
@@ -165,7 +183,6 @@ class HeatSourceDevice(Device):
         name: str,
         fluid_type: FluidsList,
         outlet_temperature: float,
-        energy_balance: float | None = None,
     ) -> None:
         """
         Initializes a new instance of the HeatSourceDevice class.
@@ -175,7 +192,7 @@ class HeatSourceDevice(Device):
         fluid_type (FluidsList): The type of fluid used in the device.
         outlet_temperature (float): The temperature of the fluid at the outlet of the heat source (in °C).
         """
-        super().__init__(name, energy_balance=energy_balance)
+        super().__init__(name)
         self.fluid_type = fluid_type
         self.outlet_temperature = outlet_temperature
 
@@ -263,7 +280,7 @@ class Turbine(NonIsentropicDevice):
         return self.outlet_state
 
 
-class Condenser(Device):
+class Condenser(SingleInletOutletDevice):
     """
     Represents a condenser in a thermodynamic cycle.
 
@@ -347,3 +364,51 @@ class Pump(NonIsentropicDevice):
         )
 
         return self.outlet_state
+
+    def get_inlet_state(self, outlet_state: Fluid) -> Fluid:
+        """
+        Determines the inlet state for the pump based on the outlet state and
+        assuming an isentropic process.
+
+        NOTE: This method is assuming an isenthropic process.
+
+        Parameters:
+        outlet_state (Fluid): The known outlet state of the pump.
+
+        Returns:
+        Fluid: The calculated inlet state for the pump.
+        """
+        self.outlet_state = outlet_state
+
+        self.inlet_state = outlet_state.isentropic_compression_to_pressure(
+            pressure=self.outlet_pressure
+        )
+
+        return self.inlet_state
+
+
+class Deaerator(Device):
+    """
+    Represents a deaerator in a thermodynamic cycle.
+
+    Attributes:
+    temperature (float): The temperature of the deaerator (in °C), which is crucial for the deaeration process.
+
+    Methods:
+    __init__: Initializes a new instance of the Deaerator class.
+    """
+
+    def __init__(self, name: str, temperature: float) -> None:
+        """
+        Initializes a new instance of the Deaerator class.
+
+        Parameters:
+        name (str): The name or identifier of the deaerator.
+        temperature (float): The operating temperature of the deaerator (in °C).
+        """
+        super().__init__(name)
+        self.temperature = temperature
+
+    @property
+    def device_type(self) -> str:
+        return "deaerator"

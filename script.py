@@ -11,6 +11,7 @@ from thermosys.models.devices import (
     Turbine,
     Condenser,
     Pump,
+    Deaerator,
 )
 from thermosys.services.units import bar_to_pascal, pascal_to_bar
 
@@ -28,6 +29,10 @@ RANKINE_DESAERATOR_PRESSURE = bar_to_pascal(5)  # Pa
 RANKINE_TURBINE_EFFICIENCY = 0.9  # -
 RANKINE_CONDENSER_PRESSURE = bar_to_pascal(0.1)  # Pa
 RANKINE_PUMP_EFFICIENCY = 0.9999  # -
+RANKINE_DEAERATOR_TEMPERATURE = 120  # C
+
+# Optimization variable:
+vapor_inlet_pressure = bar_to_pascal(10)  # Pa
 
 
 gas_initial_state = Fluid(FluidsList.Air).with_state(
@@ -97,7 +102,7 @@ brayton_cycle.print_results()
 # RANKINE CYCLE:
 vapor_initial_temperature = state_6g.temperature - RECOVERY_BOILER_DELTA_TSA
 vapor_initial_state = Fluid(FluidsList.Water).with_state(
-    Input.pressure(bar_to_pascal(10)),
+    Input.pressure(vapor_inlet_pressure),
     Input.temperature(vapor_initial_temperature),
 )
 
@@ -135,10 +140,28 @@ vapor_condenser = Condenser(
 
 state_4v = vapor_condenser.get_outlet_state(state_3v)
 
-vapor_pump = Pump(
+vapor_pump_1 = Pump(
     name="Pv",
     efficiency=RANKINE_PUMP_EFFICIENCY,
     outlet_pressure=RANKINE_DESAERATOR_PRESSURE,
 )
 
-state_5v = vapor_pump.get_outlet_state(state_4v)
+state_5v = vapor_pump_1.get_outlet_state(state_4v)
+
+vapor_deaerator = Deaerator(
+    name="Dv",
+    temperature=RANKINE_DESAERATOR_PRESSURE,
+)
+
+state_7v = Fluid(FluidsList.Water).with_state(
+    Input.pressure(RANKINE_DESAERATOR_PRESSURE),
+    Input.temperature(RANKINE_DEAERATOR_TEMPERATURE),
+)
+
+vapor_pump_2 = Pump(
+    name="Pv",
+    efficiency=RANKINE_PUMP_EFFICIENCY,
+    outlet_pressure=vapor_inlet_pressure,
+)
+
+state_6v = vapor_pump_2.get_inlet_state(state_7v)
