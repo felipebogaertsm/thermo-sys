@@ -4,7 +4,7 @@ Script file used for testing classes and functions.
 
 from pyfluids import Fluid, FluidsList, Input
 
-from thermosys.models.cycles import BraytonCycle
+from thermosys.models.cycles import BraytonCycle, RankineCycle
 from thermosys.models.devices import (
     HeatSourceDevice,
     GasCompressor,
@@ -13,7 +13,7 @@ from thermosys.models.devices import (
     Pump,
     Deaerator,
 )
-from thermosys.services.units import bar_to_pascal, pascal_to_bar
+from thermosys.services.units import bar_to_pascal
 
 BRAYTON_INLET_PRESSURE = bar_to_pascal(1)  # Pa
 BRAYTON_INLET_TEMPERATURE = 30  # C
@@ -84,7 +84,7 @@ state_4g = turbine_1g.get_outlet_state(state_3g)
 state_5g = combustion_chamber_2g.get_outlet_state(state_4g)
 state_6g = turbine_2g.get_outlet_state(state_5g)
 
-devices = [
+brayton_cycle.devices = [
     compressor_1g,
     combustion_chamber_1g,
     turbine_1g,
@@ -92,10 +92,14 @@ devices = [
     turbine_2g,
 ]
 
-states = [state_1g, state_2g, state_3g, state_4g, state_5g, state_6g]
-
-brayton_cycle.devices = devices
-brayton_cycle.states = states
+brayton_cycle.states = [
+    state_1g,
+    state_2g,
+    state_3g,
+    state_4g,
+    state_5g,
+    state_6g,
+]
 
 brayton_cycle.print_results()
 
@@ -165,3 +169,30 @@ vapor_pump_2 = Pump(
 )
 
 state_6v = vapor_pump_2.get_inlet_state(state_7v)
+
+rankine_cycle = RankineCycle(
+    initial_state=vapor_initial_state, mass_flux=BRAYTON_MASS_FLUX * 2
+)
+
+rankine_cycle.devices = [
+    recovery_boiler,
+    vapor_turbine_1,
+    vapor_turbine_2,
+    vapor_condenser,
+    vapor_pump_1,
+    vapor_deaerator,
+    vapor_pump_2,
+]
+
+rankine_cycle.states = [
+    vapor_initial_state,
+    state_1v,
+    state_2v,
+    state_3v,
+    state_4v,
+    state_5v,
+    state_6v,
+    state_7v,
+]
+
+rankine_cycle.print_results()

@@ -7,6 +7,8 @@ from abc import ABC, abstractmethod
 import numpy as np
 from pyfluids import Fluid
 
+from thermosys.models.devices import SingleInletOutletDevice
+
 
 class ThermodynamicCycle(ABC):
     """
@@ -66,9 +68,10 @@ class ThermodynamicCycle(ABC):
         print("\n")
 
         for device in self.devices:
-            print(
-                f"{device.name}: {device.energy_balance * 1e-3:.2f} kJ/kg",
-            )
+            if isinstance(device, SingleInletOutletDevice):
+                print(
+                    f"{device.name}: {device.energy_balance * 1e-3:.2f} kJ/kg",
+                )
 
         print("\n")
 
@@ -146,5 +149,52 @@ class BraytonCycle(ThermodynamicCycle):
         print(f"Compressor work: {self.compressor_work * 1e-3:.2f} kJ/kg")
         print(
             f"Total work: {(self.turbine_work - self.compressor_work) * 1e-3:.2f} kJ/kg"
+        )
+        print(f"Heat input: {self.heat_in * 1e-3:.2f} kJ/kg")
+
+
+class RankineCycle(ThermodynamicCycle):
+    """
+    Represents a Rankine cycle in a thermodynamic system.
+
+    Methods:
+    get_efficiency: Returns the efficiency of the cycle.
+    print_results: Prints the results of the cycle.
+    """
+
+    @property
+    def pump_work(self) -> float:
+        """
+        Returns the work done by the pump in the cycle.
+
+        Returns:
+        float: The work done by the pump (J/kg).
+        """
+        pump_work = np.sum(
+            device.energy_balance
+            for device in self.devices
+            if device.device_type == "pump"
+        )
+
+        return pump_work
+
+    def get_efficiency(self) -> float:
+        super().get_efficiency()
+        return (self.turbine_work - self.pump_work) / self.heat_in
+
+    def print_results(self) -> None:
+        """
+        Prints the results of the cycle.
+        """
+        print("RANKINE CYCLE RESULTS\n")
+
+        super().print_results()
+
+        print("\n")
+
+        print(f"Turbine work: {self.turbine_work * 1e-3:.2f} kJ/kg")
+        print(f"Pump work: {self.pump_work * 1e-3:.2f} kJ/kg")
+        print(
+            f"Total work: {(self.turbine_work - self.pump_work) * 1e-3:.2f} kJ/kg"
         )
         print(f"Heat input: {self.heat_in * 1e-3:.2f} kJ/kg")
