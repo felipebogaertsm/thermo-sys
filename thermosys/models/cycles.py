@@ -7,8 +7,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 from pyfluids import Fluid
 
-from thermosys.models.devices import Device
-
 
 class ThermodynamicCycle(ABC):
     """
@@ -22,8 +20,6 @@ class ThermodynamicCycle(ABC):
 
     Methods:
     __init__: Initializes a new instance of the class.
-    add_device: Adds a new device to the cycle.
-    solve: Solves for the states of the cycle.
     """
 
     def __init__(
@@ -41,41 +37,13 @@ class ThermodynamicCycle(ABC):
         self.initial_state = initial_state
         self.mass_flux = mass_flux
 
-        self.devices = []  # filled in by add_device method
-        self.states = []  # filled in by solve method
-
-    def add_device(self, device: Device) -> None:
-        """
-        Adds a new device to the cycle.
-
-        Parameters:
-        device (Device): The device to be added to the cycle.
-        """
-        self.devices.append(device)
-
-    def solve(self) -> None:
-        """
-        Solves for the states at different points in the cycle.
-
-        This method should implement the necessary calculations to determine the thermodynamic
-        states at various points in the cycle, based on the characteristics of the devices
-        in the cycle. The implementation will depend on the specifics of the Brayton cycle
-        and the data available from each device.
-        """
-        self.states = [self.initial_state]  # clear any previous states
-
-        for i, device in enumerate(self.devices):
-            inlet_state = self.states[i]
-
-            self.states.append(
-                device.get_outlet_state(inlet_state=inlet_state)
-            )
+        self.devices = []
+        self.states = []
 
     @abstractmethod
     def get_efficiency(self) -> float:
         """
-        Returns the efficiency of the cycle. Cycle must have been solved
-        before calling this method.
+        Returns the efficiency of the cycle.
 
         Returns:
         float: The efficiency of the cycle (as a decimal).
