@@ -14,40 +14,13 @@ class ThermodynamicCycle(ABC):
     Represents a Thermodynamic Cycle. A cycle is composed of a sequence of
     processes and defined states between them.
 
-    Methods:
-    __init__: Initializes a new instance of the ThermodynamicCycle class.
-    """
-
-    @abstractmethod
-    def add_device(self, device: Device) -> None:
-        """
-        Adds a new device to the cycle.
-
-        Parameters:
-        device (Device): The device to be added to the cycle.
-        """
-
-    @abstractmethod
-    def solve(self) -> None:
-        """
-        Solves for the states of the cycle.
-
-        This method should implement the necessary calculations to determine the thermodynamic
-        states at various points in the cycle.
-        """
-
-
-class BraytonCycle(ThermodynamicCycle):
-    """
-    Represents a Brayton cycle in a thermodynamic system.
-
     Attributes:
     initial_state (Fluid): The initial state of the gas in the system.
     mass_flux (float): The mass flux of the system.
     devices (list): A list of devices (e.g., compressors, turbines) in the cycle.
 
     Methods:
-    __init__: Initializes a new instance of the BraytonCycle class.
+    __init__: Initializes a new instance of the class.
     add_device: Adds a new device to the cycle.
     solve: Solves for the states of the cycle.
     """
@@ -72,7 +45,7 @@ class BraytonCycle(ThermodynamicCycle):
 
     def add_device(self, device: Device) -> None:
         """
-        Adds a new device to the Brayton cycle.
+        Adds a new device to the cycle.
 
         Parameters:
         device (Device): The device to be added to the cycle.
@@ -81,7 +54,7 @@ class BraytonCycle(ThermodynamicCycle):
 
     def solve(self) -> None:
         """
-        Solves for the states at different points in the Brayton cycle.
+        Solves for the states at different points in the cycle.
 
         This method should implement the necessary calculations to determine the thermodynamic
         states at various points in the cycle, based on the characteristics of the devices
@@ -99,3 +72,9 @@ class BraytonCycle(ThermodynamicCycle):
             self.states.append(
                 device.get_outlet_state(inlet_state=inlet_state)
             )
+
+
+class BraytonCycle(ThermodynamicCycle):
+    """
+    Represents a Brayton cycle in a thermodynamic system.
+    """

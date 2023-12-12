@@ -10,9 +10,10 @@ from thermosys.models.devices import (
     GasCompressor,
     GasTurbine,
 )
+from thermosys.services.units import bar_to_pascal
 
 gas_initial_state = Fluid(FluidsList.Air).with_state(
-    Input.pressure(101325),
+    Input.pressure(bar_to_pascal(1)),
     Input.temperature(30),
 )
 
