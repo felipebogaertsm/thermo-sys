@@ -307,3 +307,43 @@ class Condenser(Device):
 
         self.outlet_state = saturated_fluid
         return self.outlet_state
+
+
+class Pump(NonIsentropicDevice):
+    """
+    Represents a water pump in a thermodynamic cycle.
+
+    Attributes:
+    outlet_pressure (float): The pressure of the water at the outlet of the pump (in Pascals).
+
+    Methods:
+    __init__: Initializes a new instance of the Pump class.
+    """
+
+    def __init__(
+        self, name: str, efficiency: float, outlet_pressure: float
+    ) -> None:
+        """
+        Initializes a new instance of the Pump class.
+
+        Parameters:
+        name (str): The name or identifier of the pump.
+        efficiency (float): The efficiency of the pump (as a decimal).
+        outlet_pressure (float): The pressure of the water at the outlet of the pump (in Pascals).
+        """
+        super().__init__(name, efficiency)
+        self.outlet_pressure = outlet_pressure
+
+    @property
+    def device_type(self) -> str:
+        return "pump"
+
+    def get_outlet_state(self, inlet_state: Fluid) -> Fluid:
+        super().get_outlet_state(inlet_state)
+
+        self.outlet_state = inlet_state.compression_to_pressure(
+            pressure=self.outlet_pressure,
+            isentropic_efficiency=self.efficiency * 100,
+        )
+
+        return self.outlet_state

@@ -10,6 +10,7 @@ from thermosys.models.devices import (
     GasCompressor,
     Turbine,
     Condenser,
+    Pump,
 )
 from thermosys.services.units import bar_to_pascal, pascal_to_bar
 
@@ -26,6 +27,7 @@ RECOVERY_BOILER_DELTA_TSA = 25  # C
 RANKINE_DESAERATOR_PRESSURE = bar_to_pascal(5)  # Pa
 RANKINE_TURBINE_EFFICIENCY = 0.9  # -
 RANKINE_CONDENSER_PRESSURE = bar_to_pascal(0.1)  # Pa
+RANKINE_PUMP_EFFICIENCY = 0.9999  # -
 
 
 gas_initial_state = Fluid(FluidsList.Air).with_state(
@@ -132,3 +134,11 @@ vapor_condenser = Condenser(
 )
 
 state_4v = vapor_condenser.get_outlet_state(state_3v)
+
+vapor_pump = Pump(
+    name="Pv",
+    efficiency=RANKINE_PUMP_EFFICIENCY,
+    outlet_pressure=RANKINE_DESAERATOR_PRESSURE,
+)
+
+state_5v = vapor_pump.get_outlet_state(state_4v)
