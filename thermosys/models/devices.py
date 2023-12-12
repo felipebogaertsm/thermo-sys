@@ -46,7 +46,7 @@ class Device(ABC):
         Returns the type of the device.
 
         Returns:
-        str: The type of the device (e.g., "compressor", "turbine", "combustion_chamber").
+        str: The type of the device (e.g., "compressor", "turbine", "heat_source").
         """
 
     @abstractmethod
@@ -148,46 +148,47 @@ class GasCompressor(NonIsentropicDevice):
         return self.outlet_state
 
 
-class GasCombustionChamber(Device):
+class HeatSourceDevice(Device):
     """
-    Represents a gas combustion chamber in a thermodynamic cycle.
+    Represents a heat source in a thermodynamic cycle, capable of using different types of fluids.
 
     Attributes:
-    outlet_temperature (float): The temperature of the gas at the outlet of
-        the combustion chamber (C).
+    fluid_type (FluidsList): The type of fluid used in the device.
+    outlet_temperature (float): The temperature of the fluid at the outlet of the heat source (in °C).
 
     Methods:
-    __init__: Initializes a new instance of the CombustionChamber class.
+    __init__: Initializes a new instance of the HeatSourceDevice class.
     """
 
     def __init__(
         self,
         name: str,
+        fluid_type: FluidsList,
         outlet_temperature: float,
         energy_balance: float | None = None,
     ) -> None:
         """
-        Initializes a new instance of the GasCombustionChamber class.
+        Initializes a new instance of the HeatSourceDevice class.
 
         Parameters:
-        name (str): The name or identifier of the combustion chamber.
-        outlet_temperature (float): The temperature of the gas at the outlet
-            of the combustion chamber (in C).
+        name (str): The name or identifier of the heat source.
+        fluid_type (FluidsList): The type of fluid used in the device.
+        outlet_temperature (float): The temperature of the fluid at the outlet of the heat source (in °C).
         """
         super().__init__(name, energy_balance=energy_balance)
+        self.fluid_type = fluid_type
         self.outlet_temperature = outlet_temperature
 
     @property
     def device_type(self) -> str:
-        return "combustion_chamber"
+        return "heat_source"
 
     def get_outlet_state(self, inlet_state: Fluid) -> Fluid:
         super().get_outlet_state(inlet_state)
 
-        pressure = inlet_state.pressure
-
-        fluid = Fluid(FluidsList.Air).with_state(
-            Input.pressure(pressure),
+        # Use the specified fluid type for setting the state
+        fluid = Fluid(self.fluid_type).with_state(
+            Input.pressure(inlet_state.pressure),
             Input.temperature(self.outlet_temperature),
         )
 

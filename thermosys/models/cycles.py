@@ -102,7 +102,7 @@ class BraytonCycle(ThermodynamicCycle):
         heat_in = np.sum(
             device.energy_balance
             for device in self.devices
-            if device.device_type == "combustion_chamber"
+            if device.device_type == "heat_source"
         )
 
         return heat_in
