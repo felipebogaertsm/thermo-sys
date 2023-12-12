@@ -76,6 +76,19 @@ def bar_to_pascal(bar: float) -> float:
     return bar * 100000
 
 
+def pascal_to_bar(pascal: float) -> float:
+    """
+    Convert pressure from Pascals to bar.
+
+    Parameters:
+    pascal (float): Pressure in Pascals.
+
+    Returns:
+    float: Pressure in bar.
+    """
+    return pascal / 100000  # 1 Pascal is 1/100000 of a bar
+
+
 def liter_to_cubic_meter(liters: float) -> float:
     """
     Convert volume from liters to cubic meters.
