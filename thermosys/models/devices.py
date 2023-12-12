@@ -15,23 +15,20 @@ class Device(ABC):
 
     Attributes:
     name (str): The name or identifier of the device.
-    efficiency (float): The efficiency of the device (as a decimal).
 
     Methods:
     __init__: Initializes a new instance of the Device class.
     get_outlet_state: Returns the state of the gas at the outlet of the device.
     """
 
-    def __init__(self, name: str, efficiency: float) -> None:
+    def __init__(self, name: str) -> None:
         """
         Initializes a new instance of the Device class.
 
         Parameters:
         name (str): The name or identifier of the device.
-        efficiency (float): The efficiency of the device (as a decimal).
         """
         self.name = name
-        self.efficiency = efficiency
 
     @abstractmethod
     def get_outlet_state(self, inlet_state: Fluid, *args, **kwargs) -> Fluid:
@@ -46,7 +43,30 @@ class Device(ABC):
         """
 
 
-class GasCompressor(Device):
+class NonIsentropicDevice(Device):
+    """
+    Represents a general non-isentropic device in a thermodynamic cycle.
+
+    Attributes:
+    efficiency (float): The efficiency of the device (as a decimal).
+
+    Methods:
+    __init__: Initializes a new instance of the NonIsentropicDevice class.
+    """
+
+    def __init__(self, name: str, efficiency: float) -> None:
+        """
+        Initializes a new instance of the NonIsentropicDevice class.
+
+        Parameters:
+        name (str): The name or identifier of the device.
+        efficiency (float): The efficiency of the device (as a decimal).
+        """
+        super().__init__(name)
+        self.efficiency = efficiency
+
+
+class GasCompressor(NonIsentropicDevice):
     """
     Represents a gas compressor in a thermodynamic cycle, inheriting from the Device class.
 
@@ -106,7 +126,6 @@ class GasCombustionChamber(Device):
     def __init__(
         self,
         name: str,
-        efficiency: float,
         outlet_temperature: float,
     ) -> None:
         """
@@ -114,12 +133,10 @@ class GasCombustionChamber(Device):
 
         Parameters:
         name (str): The name or identifier of the combustion chamber.
-        efficiency (float): The efficiency of the combustion process (as a
-            decimal).
         outlet_temperature (float): The temperature of the gas at the outlet
             of the combustion chamber (in C).
         """
-        super().__init__(name, efficiency)
+        super().__init__(name)
         self.outlet_temperature = outlet_temperature
 
     def get_outlet_state(self, inlet_state: Fluid) -> Fluid:
@@ -133,7 +150,7 @@ class GasCombustionChamber(Device):
         return fluid
 
 
-class GasTurbine(Device):
+class GasTurbine(NonIsentropicDevice):
     """
     Represents a gas turbine in a thermodynamic cycle.
 

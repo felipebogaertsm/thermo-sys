@@ -17,42 +17,40 @@ gas_initial_state = Fluid(FluidsList.Air).with_state(
     Input.temperature(30),
 )
 
-# Creating 1st Brayton cycle instance:
-brayton_cycle_1 = BraytonCycle(initial_state=gas_initial_state, mass_flux=450)
-brayton_cycle_1.add_device(
+# Creating Brayton cycle instance:
+brayton_cycle = BraytonCycle(initial_state=gas_initial_state, mass_flux=450)
+brayton_cycle.add_device(
     GasCompressor(
-        name="C1g1",
+        name="C1g",
         efficiency=0.8,
         compression_ratio=25,
     )
 )
-brayton_cycle_1.add_device(
+brayton_cycle.add_device(
     GasCombustionChamber(
-        name="CC1g1",
-        efficiency=1,
+        name="CC1g",
         outlet_temperature=1000,
     )
 )
-brayton_cycle_1.add_device(
+brayton_cycle.add_device(
     GasTurbine(
-        name="TCg1",
+        name="TCg",
         efficiency=0.8,
         outlet_pressure=101325 * 3,
     )
 )
-brayton_cycle_1.add_device(
+brayton_cycle.add_device(
     GasCombustionChamber(
-        name="CC2g1",
-        efficiency=1,
+        name="CC2g",
         outlet_temperature=710,
     )
 )
-brayton_cycle_1.add_device(
+brayton_cycle.add_device(
     GasTurbine(
-        name="TPg1",
+        name="TPg",
         efficiency=0.85,
         outlet_pressure=101325,
     )
 )
 
-brayton_cycle_1.solve()
+brayton_cycle.solve()
