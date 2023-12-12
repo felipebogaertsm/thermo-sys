@@ -15,6 +15,10 @@ class Device(ABC):
 
     Attributes:
     name (str): The name or identifier of the device.
+    inlet_state (Fluid | None): The state of the gas at the inlet of the
+        device.
+    outlet_state (Fluid | None): The state of the gas at the outlet of the
+        device.
 
     Methods:
     __init__: Initializes a new instance of the Device class.
@@ -29,6 +33,9 @@ class Device(ABC):
         name (str): The name or identifier of the device.
         """
         self.name = name
+
+        self.inlet_state = None
+        self.outlet_state = None
 
     @abstractmethod
     def get_outlet_state(self, inlet_state: Fluid, *args, **kwargs) -> Fluid:
@@ -105,10 +112,11 @@ class GasCompressor(NonIsentropicDevice):
             Input.temperature(inlet_temperature),
         )
 
-        return fluid.compression_to_pressure(
+        self.outlet_state = fluid.compression_to_pressure(
             pressure=outlet_pressure,
             isentropic_efficiency=self.efficiency * 100,
         )
+        return self.outlet_state
 
 
 class GasCombustionChamber(Device):
@@ -147,7 +155,8 @@ class GasCombustionChamber(Device):
             Input.temperature(self.outlet_temperature),
         )
 
-        return fluid
+        self.outlet_state = fluid
+        return self.outlet_state
 
 
 class GasTurbine(NonIsentropicDevice):
@@ -187,7 +196,8 @@ class GasTurbine(NonIsentropicDevice):
             Input.temperature(inlet_temperature),
         )
 
-        return fluid.expansion_to_pressure(
+        self.outlet_state = fluid.expansion_to_pressure(
             pressure=self.outlet_pressure,
             isentropic_efficiency=self.efficiency * 100,
         )
+        return self.outlet_state

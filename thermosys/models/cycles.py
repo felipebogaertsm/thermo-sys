@@ -69,6 +69,8 @@ class ThermodynamicCycle(ABC):
             else:
                 inlet_state = self.states[i - 1]
 
+            device.inlet_state = inlet_state
+
             self.states.append(
                 device.get_outlet_state(inlet_state=inlet_state)
             )
