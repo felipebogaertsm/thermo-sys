@@ -9,7 +9,7 @@ from thermosys.models.cycles import BraytonCycle
 from thermosys.models.devices import (
     HeatSourceDevice,
     GasCompressor,
-    GasTurbine,
+    Turbine,
 )
 from thermosys.services.montecarlo import get_random_value
 from thermosys.services.units import bar_to_pascal, pascal_to_bar
@@ -54,9 +54,10 @@ def simulate_system(brayton_tc_outlet_pressure: float) -> float:
     state_2g = compressor_1g.get_outlet_state(state_1g)
     state_3g = combustion_chamber_1g.get_outlet_state(state_2g)
 
-    turbine_1g = GasTurbine(
+    turbine_1g = Turbine(
         name="TCg",
         efficiency=BRAYTON_TURBINE_C_EFFICIENCY,
+        fluid_type=FluidsList.Air,
         outlet_pressure=brayton_tc_outlet_pressure,
         energy_balance=state_2g.enthalpy - state_1g.enthalpy,
     )
@@ -65,9 +66,10 @@ def simulate_system(brayton_tc_outlet_pressure: float) -> float:
         fluid_type=FluidsList.Air,
         outlet_temperature=BRAYTON_COMBUSTION_CHAMBER_2_TEMPERATURE,
     )
-    turbine_2g = GasTurbine(
+    turbine_2g = Turbine(
         name="TPg",
         efficiency=BRAYTON_TURBINE_P_EFFICIENCY,
+        fluid_type=FluidsList.Air,
         outlet_pressure=BRAYTON_INLET_PRESSURE,
     )
 

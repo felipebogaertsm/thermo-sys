@@ -196,11 +196,12 @@ class HeatSourceDevice(Device):
         return self.outlet_state
 
 
-class GasTurbine(NonIsentropicDevice):
+class Turbine(NonIsentropicDevice):
     """
-    Represents a gas turbine in a thermodynamic cycle.
+    Represents a gas turbine in a thermodynamic cycle, capable of using different types of fluids.
 
     Attributes:
+    fluid_type (FluidsList): The type of fluid used in the turbine.
     outlet_pressure (float): The pressure of the gas at the outlet of the turbine (in Pascals).
     _energy_balance (float | None): The energy balance of the turbine (J/kg).
 
@@ -212,6 +213,7 @@ class GasTurbine(NonIsentropicDevice):
         self,
         name: str,
         efficiency: float,
+        fluid_type: FluidsList,
         outlet_pressure: float,
         energy_balance: float | None = None,
     ) -> None:
@@ -221,10 +223,12 @@ class GasTurbine(NonIsentropicDevice):
         Parameters:
         name (str): The name or identifier of the gas turbine.
         efficiency (float): The efficiency of the turbine (as a decimal).
+        fluid_type (FluidsList): The type of fluid used in the turbine.
         outlet_pressure (float): The pressure of the gas at the outlet of the turbine (in Pascals).
         energy_balance (float | None): The energy balance of the turbine (J/kg).
         """
         super().__init__(name, efficiency)
+        self.fluid_type = fluid_type
         self.outlet_pressure = outlet_pressure
         self._energy_balance = energy_balance
 
@@ -235,27 +239,71 @@ class GasTurbine(NonIsentropicDevice):
     def get_outlet_state(self, inlet_state: Fluid) -> Fluid:
         super().get_outlet_state(inlet_state)
 
+        # Create a new fluid instance using the specified fluid type
+        fluid = Fluid(self.fluid_type).with_state(
+            Input.pressure(inlet_state.pressure),
+            Input.temperature(inlet_state.temperature),
+        )
+
         if self._energy_balance is not None:
             outlet_enthalpy = (
                 inlet_state.enthalpy - self._energy_balance
             ) / self.efficiency
             pressure_drop = np.abs(inlet_state.pressure - self.outlet_pressure)
 
-            self.outlet_state = inlet_state.cooling_to_enthalpy(
+            self.outlet_state = fluid.cooling_to_enthalpy(
                 enthalpy=outlet_enthalpy, pressure_drop=pressure_drop
             )
         else:
-            inlet_pressure = inlet_state.pressure
-            inlet_temperature = inlet_state.temperature
-
-            fluid = Fluid(FluidsList.Air).with_state(
-                Input.pressure(inlet_pressure),
-                Input.temperature(inlet_temperature),
-            )
-
             self.outlet_state = fluid.expansion_to_pressure(
                 pressure=self.outlet_pressure,
                 isentropic_efficiency=self.efficiency * 100,
             )
 
+        return self.outlet_state
+
+
+class Condenser(Device):
+    """
+    Represents a condenser in a thermodynamic cycle.
+
+    Attributes:
+    pressure (float): The pressure of the fluid at the outlet of the condenser (in Pascals).
+
+    Methods:
+    __init__: Initializes a new instance of the Condenser class.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        fluid_type: FluidsList,
+        pressure: float,
+    ) -> None:
+        """
+        Initializes a new instance of the Condenser class.
+
+        Parameters:
+        name (str): The name or identifier of the condenser.
+        fluid_type (FluidsList): The type of fluid used in the condenser.
+        pressure (float): The pressure of the fluid at the outlet of the condenser (in Pascals).
+        """
+        super().__init__(name)
+        self.fluid_type = fluid_type
+        self.pressure = pressure
+
+    @property
+    def device_type(self) -> str:
+        return "condenser"
+
+    def get_outlet_state(self, inlet_state: Fluid) -> Fluid:
+        super().get_outlet_state(inlet_state)
+
+        # Create a new fluid instance using the specified fluid type
+        fluid = Fluid(self.fluid_type)
+
+        # Saturation fluid (x = 0)
+        saturated_fluid = fluid.dew_point_at_pressure(pressure=self.pressure)
+
+        self.outlet_state = saturated_fluid
         return self.outlet_state
