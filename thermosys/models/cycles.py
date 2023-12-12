@@ -53,6 +53,27 @@ class ThermodynamicCycle(ABC):
                 "The cycle must be solved before getting its efficiency."
             )
 
+    @abstractmethod
+    def print_results(self) -> None:
+        """
+        Prints the results of the cycle.
+        """
+        for i, state in enumerate(self.states):
+            print(
+                f"{i+1} - {state.name}: {state.pressure * 1e-5:.2f} bar, {state.temperature:.2f} C, {state.enthalpy * 1e-3:.2f} kJ/kg"
+            )
+
+        print("\n")
+
+        for device in self.devices:
+            print(
+                f"{device.name}: {device.energy_balance * 1e-3:.2f} kJ/kg",
+            )
+
+        print("\n")
+
+        print(f"Efficiency: {self.get_efficiency() * 100:.2f} %")
+
 
 class BraytonCycle(ThermodynamicCycle):
     """
@@ -115,17 +136,9 @@ class BraytonCycle(ThermodynamicCycle):
         """
         Prints the results of the cycle.
         """
-        for i, state in enumerate(self.states):
-            print(
-                f"{i+1} - {state.name}: {state.pressure * 1e-5:.2f} bar, {state.temperature:.2f} C, {state.enthalpy * 1e-3:.2f} kJ/kg"
-            )
+        print("BRAYTON CYCLE RESULTS\n")
 
-        print("\n")
-
-        for device in self.devices:
-            print(
-                f"{device.name}: {device.energy_balance * 1e-3:.2f} kJ/kg",
-            )
+        super().print_results()
 
         print("\n")
 
@@ -135,7 +148,3 @@ class BraytonCycle(ThermodynamicCycle):
             f"Total work: {(self.turbine_work - self.compressor_work) * 1e-3:.2f} kJ/kg"
         )
         print(f"Heat input: {self.heat_in * 1e-3:.2f} kJ/kg")
-
-        print("\n")
-
-        print(f"Efficiency: {self.get_efficiency() * 100:.2f} %")
