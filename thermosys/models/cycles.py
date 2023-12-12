@@ -66,7 +66,6 @@ class ThermodynamicCycle(ABC):
 
         for i, device in enumerate(self.devices):
             inlet_state = self.states[i]
-            device.inlet_state = inlet_state
 
             self.states.append(
                 device.get_outlet_state(inlet_state=inlet_state)
