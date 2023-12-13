@@ -2,8 +2,8 @@
 Cogeneration example from the examples in gas.py and vapor.py.
 """
 
-from gas import brayton_cycle_example
-from vapor import rankine_cycle_example
+from example_gas import brayton_cycle_example
+from example_vapor import rankine_cycle_example
 from thermosys.services.misc import print_states
 from thermosys.services.units import bar_to_pascal
 
