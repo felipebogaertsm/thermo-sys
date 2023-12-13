@@ -220,7 +220,6 @@ class Turbine(NonIsentropicDevice):
     Attributes:
     fluid_type (FluidsList): The type of fluid used in the turbine.
     outlet_pressure (float): The pressure of the gas at the outlet of the turbine (in Pascals).
-    _energy_balance (float | None): The energy balance of the turbine (J/kg).
 
     Methods:
     __init__: Initializes a new instance of the GasTurbine class.
@@ -232,7 +231,6 @@ class Turbine(NonIsentropicDevice):
         efficiency: float,
         fluid_type: FluidsList,
         outlet_pressure: float,
-        energy_balance: float | None = None,
     ) -> None:
         """
         Initializes a new instance of the GasTurbine class.
@@ -242,18 +240,18 @@ class Turbine(NonIsentropicDevice):
         efficiency (float): The efficiency of the turbine (as a decimal).
         fluid_type (FluidsList): The type of fluid used in the turbine.
         outlet_pressure (float): The pressure of the gas at the outlet of the turbine (in Pascals).
-        energy_balance (float | None): The energy balance of the turbine (J/kg).
         """
         super().__init__(name, efficiency)
         self.fluid_type = fluid_type
         self.outlet_pressure = outlet_pressure
-        self._energy_balance = energy_balance
 
     @property
     def device_type(self) -> str:
         return "turbine"
 
-    def get_outlet_state(self, inlet_state: Fluid) -> Fluid:
+    def get_outlet_state(
+        self, inlet_state: Fluid, energy_balance: float | None = None
+    ) -> Fluid:
         super().get_outlet_state(inlet_state)
 
         # Create a new fluid instance using the specified fluid type
@@ -262,10 +260,11 @@ class Turbine(NonIsentropicDevice):
             Input.temperature(inlet_state.temperature),
         )
 
-        if self._energy_balance is not None:
+        if energy_balance is not None:
             outlet_enthalpy = (
-                inlet_state.enthalpy - self._energy_balance
-            ) / self.efficiency
+                inlet_state.enthalpy - energy_balance / self.efficiency
+            )
+
             pressure_drop = np.abs(inlet_state.pressure - self.outlet_pressure)
 
             self.outlet_state = fluid.cooling_to_enthalpy(

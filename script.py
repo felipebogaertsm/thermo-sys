@@ -66,7 +66,6 @@ turbine_1g = Turbine(
     efficiency=BRAYTON_TURBINE_C_EFFICIENCY,
     fluid_type=FluidsList.Air,
     outlet_pressure=bar_to_pascal(10),
-    energy_balance=state_2g.enthalpy - state_1g.enthalpy,
 )
 combustion_chamber_2g = HeatSourceDevice(
     name="CC2g",
@@ -80,7 +79,10 @@ turbine_2g = Turbine(
     outlet_pressure=BRAYTON_INLET_PRESSURE,
 )
 
-state_4g = turbine_1g.get_outlet_state(state_3g)
+state_4g = turbine_1g.get_outlet_state(
+    state_3g,
+    energy_balance=(state_2g.enthalpy - state_1g.enthalpy),
+)
 state_5g = combustion_chamber_2g.get_outlet_state(state_4g)
 state_6g = turbine_2g.get_outlet_state(state_5g)
 
