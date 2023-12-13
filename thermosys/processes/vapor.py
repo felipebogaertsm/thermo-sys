@@ -5,22 +5,20 @@ Vapor specific devices.
 from pyfluids import Fluid
 
 
-def condense_to_pressure(inlet_state: Fluid, outlet_pressure: float) -> Fluid:
+def condense_to_pressure(inlet_state: Fluid) -> Fluid:
     """
     Determines the outlet state of a condenser based on a given outlet
         pressure.
 
     Parameters:
     inlet_state (Fluid): The inlet state of the fluid.
-    outlet_pressure (float): The desired outlet pressure of the fluid in the
-        condenser (in Pascals).
 
     Returns:
     Fluid: The outlet state of the fluid after condensation.
     """
-    # Determine the saturated fluid state at the given outlet pressure
+    # Determine the saturated fluid state at the inlet pressure:
     saturated_fluid = inlet_state.dew_point_at_pressure(
-        pressure=outlet_pressure
+        pressure=inlet_state.pressure
     )
 
     return saturated_fluid
