@@ -25,7 +25,7 @@ BRAYTON_COMBUSTION_CHAMBER_1_TEMPERATURE = 1000  # C
 BRAYTON_TURBINE_P_EFFICIENCY = 0.85  # -
 BRAYTON_COMBUSTION_CHAMBER_2_TEMPERATURE = 710  # C
 RECOVERY_BOILER_DELTA_TSA = 25  # C
-RANKINE_DESAERATOR_PRESSURE = bar_to_pascal(5)  # Pa
+RANKINE_DEAERATOR_PRESSURE = bar_to_pascal(5)  # Pa
 RANKINE_TURBINE_EFFICIENCY = 0.9  # -
 RANKINE_CONDENSER_PRESSURE = bar_to_pascal(0.1)  # Pa
 RANKINE_PUMP_EFFICIENCY = 0.9999  # -
@@ -104,25 +104,30 @@ brayton_cycle.states = [
 brayton_cycle.print_results()
 
 # RANKINE CYCLE:
-vapor_initial_temperature = state_6g.temperature - RECOVERY_BOILER_DELTA_TSA
-vapor_initial_state = Fluid(FluidsList.Water).with_state(
+
+state_7v = Fluid(FluidsList.Water).with_state(
     Input.pressure(vapor_inlet_pressure),
-    Input.temperature(vapor_initial_temperature),
+    Input.temperature(RANKINE_DEAERATOR_TEMPERATURE),
 )
 
-recovery_boiler = HeatSourceDevice(
+recover_boiler = HeatSourceDevice(
     name="RB",
     fluid_type=FluidsList.Water,
-    outlet_temperature=vapor_initial_temperature,
+    outlet_temperature=state_6g.temperature - RECOVERY_BOILER_DELTA_TSA,
 )
 
-state_1v = recovery_boiler.get_outlet_state(vapor_initial_state)
+state_1v = recover_boiler.get_outlet_state(
+    state_7v.with_state(
+        Input.pressure(vapor_inlet_pressure),
+        Input.temperature(state_7v.temperature),
+    )
+)
 
 vapor_turbine_1 = Turbine(
     name="T1v",
     efficiency=RANKINE_TURBINE_EFFICIENCY,
     fluid_type=FluidsList.Water,
-    outlet_pressure=RANKINE_DESAERATOR_PRESSURE,
+    outlet_pressure=RANKINE_DEAERATOR_PRESSURE,
 )
 
 state_2v = vapor_turbine_1.get_outlet_state(state_1v)
@@ -145,37 +150,34 @@ vapor_condenser = Condenser(
 state_4v = vapor_condenser.get_outlet_state(state_3v)
 
 vapor_pump_1 = Pump(
-    name="Pv",
+    name="P1v",
     efficiency=RANKINE_PUMP_EFFICIENCY,
-    outlet_pressure=RANKINE_DESAERATOR_PRESSURE,
+    outlet_pressure=RANKINE_DEAERATOR_PRESSURE,
 )
 
 state_5v = vapor_pump_1.get_outlet_state(state_4v)
 
 vapor_deaerator = Deaerator(
     name="Dv",
-    temperature=RANKINE_DESAERATOR_PRESSURE,
-)
-
-state_7v = Fluid(FluidsList.Water).with_state(
-    Input.pressure(RANKINE_DESAERATOR_PRESSURE),
-    Input.temperature(RANKINE_DEAERATOR_TEMPERATURE),
+    temperature=RANKINE_DEAERATOR_PRESSURE,
 )
 
 vapor_pump_2 = Pump(
-    name="Pv",
+    name="P2v",
     efficiency=RANKINE_PUMP_EFFICIENCY,
     outlet_pressure=vapor_inlet_pressure,
 )
 
-state_6v = vapor_pump_2.get_inlet_state(state_7v)
+state_6v = vapor_pump_2.get_inlet_state(
+    state_7v, inlet_pressure=RANKINE_DEAERATOR_PRESSURE
+)
 
 rankine_cycle = RankineCycle(
-    initial_state=vapor_initial_state, mass_flux=BRAYTON_MASS_FLUX * 2
+    initial_state=state_1v, mass_flux=BRAYTON_MASS_FLUX * 2
 )
 
 rankine_cycle.devices = [
-    recovery_boiler,
+    recover_boiler,
     vapor_turbine_1,
     vapor_turbine_2,
     vapor_condenser,
@@ -185,7 +187,6 @@ rankine_cycle.devices = [
 ]
 
 rankine_cycle.states = [
-    vapor_initial_state,
     state_1v,
     state_2v,
     state_3v,
@@ -194,5 +195,7 @@ rankine_cycle.states = [
     state_6v,
     state_7v,
 ]
+
+print("\n")
 
 rankine_cycle.print_results()

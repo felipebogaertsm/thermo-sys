@@ -365,23 +365,24 @@ class Pump(NonIsentropicDevice):
 
         return self.outlet_state
 
-    def get_inlet_state(self, outlet_state: Fluid) -> Fluid:
+    def get_inlet_state(
+        self, outlet_state: Fluid, inlet_pressure: float
+    ) -> Fluid:
         """
-        Determines the inlet state for the pump based on the outlet state and
-        assuming an isentropic process.
-
-        NOTE: This method is assuming an isenthropic process.
+        Determines the inlet state for the pump based on the outlet state.
 
         Parameters:
         outlet_state (Fluid): The known outlet state of the pump.
+        inlet_pressure (float): The pressure of the water at the inlet of the pump (in Pascals).
 
         Returns:
         Fluid: The calculated inlet state for the pump.
         """
         self.outlet_state = outlet_state
 
-        self.inlet_state = outlet_state.isentropic_compression_to_pressure(
-            pressure=self.outlet_pressure
+        self.inlet_state = outlet_state.expansion_to_pressure(
+            pressure=inlet_pressure,
+            isentropic_efficiency=self.efficiency * 100,
         )
 
         return self.inlet_state
