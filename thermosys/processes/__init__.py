@@ -58,7 +58,11 @@ def turbine_to_enthalpy(
     energy_balance: float,
 ) -> Fluid:
     """
-    Determines the outlet state of a turbine based on the specified energy balance.
+    Determines the outlet state of a turbine based on the specified energy
+    balance.
+
+    NOTE: outlet_pressure variable is not the same as in other resolution
+    methods. Verify that later.
 
     Parameters:
     inlet_state (Fluid): The inlet state of the fluid.
@@ -66,15 +70,23 @@ def turbine_to_enthalpy(
     energy_balance (float): The energy balance to be achieved (in J/kg).
 
     Returns:
-    Fluid: The outlet state of the fluid after cooling to achieve the given energy balance.
+    Fluid: The outlet state of the fluid after cooling to achieve the given
+        energy balance.
     """
-    outlet_enthalpy = inlet_state.enthalpy - energy_balance / efficiency
-    pressure_drop = np.abs(
-        inlet_state.pressure
-        - inlet_state.pressure * (outlet_enthalpy / inlet_state.enthalpy)
+    outlet_enthalpy = inlet_state.enthalpy - energy_balance
+    isenthropic_outlet_enthalpy = (
+        inlet_state.enthalpy
+        - (inlet_state.enthalpy - outlet_enthalpy) / efficiency
     )
 
+    outlet_pressure = inlet_state.with_state(
+        Input.enthalpy(isenthropic_outlet_enthalpy),
+        Input.entropy(inlet_state.entropy),
+    ).pressure
+
+    pressure_drop = np.abs(inlet_state.pressure - outlet_pressure)
     outlet_state = inlet_state.cooling_to_enthalpy(
         enthalpy=outlet_enthalpy, pressure_drop=pressure_drop
     )
+
     return outlet_state
