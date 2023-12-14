@@ -8,7 +8,7 @@ from example_gas import brayton_cycle_example
 from example_vapor import rankine_cycle_example
 from thermosys.services.energy import energy_balance
 from thermosys.services.misc import print_states
-from thermosys.services.montecarlo import get_random_value
+from thermosys.services.montecarlo import get_random_value, plot_monte_carlo
 from thermosys.services.units import bar_to_pascal
 
 ITERATION_COUNT = 1000  # -
@@ -62,7 +62,9 @@ def main():
     efficiency = np.array([])
 
     for _ in range(ITERATION_COUNT):
-        vapor_inlet_pressure = get_random_value(5, 200)
+        vapor_inlet_pressure = get_random_value(
+            5, 200
+        )  # deaerator pressure minimum
 
         # Solve Rankine cycle:
         rankine_cycle = rankine_cycle_example(
@@ -89,6 +91,7 @@ def main():
 
         pressure = np.append(pressure, vapor_inlet_pressure)
         efficiency = np.append(efficiency, vapor_efficiency)
+        print_states(vapor_states)
 
     max_efficiency = np.max(efficiency)
     pressure_at_max_efficiency = pressure[efficiency == max_efficiency]
@@ -99,6 +102,8 @@ def main():
     print(
         f"Vapor inlet pressure for max efficiency: {pressure_at_max_efficiency[0]:.2f} bar"
     )
+
+    plot_monte_carlo(pressure, efficiency)
 
 
 if __name__ == "__main__":
