@@ -2,7 +2,7 @@
 Vapor specific devices.
 """
 
-from pyfluids import Fluid
+from pyfluids import Fluid, FluidsList, Input
 
 
 def condense_to_pressure(inlet_state: Fluid) -> Fluid:
@@ -16,12 +16,12 @@ def condense_to_pressure(inlet_state: Fluid) -> Fluid:
     Returns:
     Fluid: The outlet state of the fluid after condensation.
     """
-    # Determine the saturated fluid state at the inlet pressure:
-    saturated_fluid = inlet_state.dew_point_at_pressure(
-        pressure=inlet_state.pressure
+    saturation_state = inlet_state.two_phase_point_at_pressure(
+        pressure=inlet_state.pressure,
+        quality=0,
     )
 
-    return saturated_fluid
+    return saturation_state
 
 
 def pump_to_pressure(
