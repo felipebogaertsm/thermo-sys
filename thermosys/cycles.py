@@ -1,3 +1,0 @@
-"""
-Cycle utility functions.
-"""
